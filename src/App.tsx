@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { Bell, Bookmark, ChevronDown, Globe2, Heart, Home, MessageCircle, Plus, Search, Send, UserPlus } from 'lucide-react'
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
+import { Bell, Bookmark, ChevronDown, Globe2, Heart, Home, MessageCircle, Plus, Search, Send, User, UserPlus } from 'lucide-react'
 
 const stories = [
   { name: 'Your Story', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=180&q=85', own: true },
@@ -8,16 +9,18 @@ const stories = [
   { name: 'Sophie', image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=180&q=85', online: true },
   { name: 'Ken', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=180&q=85' },
   { name: 'Sara', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=180&q=85' },
-  { name: 'Liam', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=180&q=85' },
 ]
 
-function App() {
+const spring = { type: 'spring' as const, stiffness: 500, damping: 28, mass: 0.6 }
+
+export default function App() {
   const [liked, setLiked] = useState(false)
   const [saved, setSaved] = useState(false)
   const [following, setFollowing] = useState(false)
   const [active, setActive] = useState('home')
   const [notifications, setNotifications] = useState(3)
   const [heartBurst, setHeartBurst] = useState(false)
+  const [worldFeedOpen, setWorldFeedOpen] = useState(false)
   const lastTap = useRef(0)
 
   const selectTab = (tab: string) => {
@@ -31,72 +34,96 @@ function App() {
       setLiked(true)
       setHeartBurst(false)
       requestAnimationFrame(() => setHeartBurst(true))
-      window.setTimeout(() => setHeartBurst(false), 720)
+      window.setTimeout(() => setHeartBurst(false), 800)
     }
     lastTap.current = now
   }
 
   return (
-    <div className="yuniko-root">
-      <div className="yuniko-app-shell">
-        <header className="yuniko-header">
-          <button className="yuniko-logo tap-scale" onClick={() => selectTab('home')} aria-label="Yuniko home">Yuniko</button>
-          <button className="world-feed tap-scale" aria-label="World Feed">
-            <Globe2 /> <span>World Feed</span> <ChevronDown />
-          </button>
-          <div className="header-actions">
-            <button className="tap-scale" aria-label="Search"><Search /></button>
-            <button className="tap-scale" aria-label="Add friends"><UserPlus /></button>
-          </div>
-        </header>
-
-        <section className="yuniko-stories" aria-label="Stories">
-          <div className="stories-track">
-            {stories.map((story) => (
-              <button className="story-item tap-scale-story" key={story.name} aria-label={story.name}>
-                <span className={`story-avatar-ring ${story.own ? 'own' : ''}`}>
-                  <span className="story-avatar-inner"><img src={story.image} alt="" /></span>
-                  {story.own && <span className="story-add"><Plus /></span>}
-                </span>
-                <span className="story-label">{story.name}</span>
-                {story.online && <span className="story-online" />}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <main className="yuniko-feed">
-          <article className="yuniko-feed-item">
-            <div className="post-card">
-              <img className="post-image" onClick={handlePostTap} src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=90" alt="Ocean sunset" />
-              <div className="post-gradient" />
-              {heartBurst && <div className="heart-burst" aria-hidden="true"><Heart fill="currentColor" /></div>}
-              <div className="post-actions">
-                <button className={`action-tap ${liked ? 'active' : ''}`} onClick={() => setLiked(v => !v)} aria-label="Like"><Heart fill={liked ? 'currentColor' : 'none'} /><span>{liked ? '25.7K' : '25.6K'}</span></button>
-                <button className="action-tap" aria-label="Comments"><MessageCircle /><span>1.2K</span></button>
-                <button className="action-tap" aria-label="Share"><Send /><span>3.4K</span></button>
-                <button className={`action-tap ${saved ? 'active' : ''}`} onClick={() => setSaved(v => !v)} aria-label="Save"><Bookmark fill={saved ? 'currentColor' : 'none'} /><span>2.1K</span></button>
-              </div>
-              <div className="post-author">
-                <div className="author-avatar"><img src={stories[0].image} alt="Aina" /></div>
-                <div className="author-text"><strong>Aina <i>✓</i></strong><span>Madagascar 🇲🇬</span></div>
-                <button className={`follow-button ${following ? 'following' : ''}`} onClick={() => setFollowing(v => !v)}>{following ? 'Following' : 'Follow'}</button>
-              </div>
-              <div className="post-caption"><strong>Sunset hits different 🌅✨</strong><span>#sunset #goodvibes #life</span></div>
+    <MotionConfig reducedMotion="user">
+      <div className="yuniko-root">
+        <div className="yuniko-app-shell">
+          <header className="yuniko-header">
+            <motion.button className="yuniko-logo" whileTap={{ scale: 0.85 }} transition={spring} onClick={() => selectTab('home')} aria-label="Yuniko home">Yuniko</motion.button>
+            <motion.button className="world-feed" whileTap={{ scale: 0.96 }} transition={spring} onClick={() => setWorldFeedOpen(v => !v)} aria-label="World Feed">
+              <Globe2 /> <span>World Feed</span> <ChevronDown />
+            </motion.button>
+            <div className="header-actions">
+              <motion.button whileTap={{ scale: 0.85 }} transition={spring} aria-label="Search"><Search /></motion.button>
+              <motion.button whileTap={{ scale: 0.85 }} transition={spring} aria-label="Add friends"><UserPlus /></motion.button>
             </div>
-          </article>
-        </main>
+          </header>
 
-        <nav className="yuniko-bottom-nav" aria-label="Main navigation">
-          <button className={`nav-tap ${active === 'home' ? 'active' : ''}`} onClick={() => selectTab('home')}><Home /><span>Home</span></button>
-          <button className={`nav-tap ${active === 'notifications' ? 'active' : ''}`} onClick={() => selectTab('notifications')}><span className="nav-icon"><Bell />{notifications > 0 && <i>{notifications}</i>}</span><span>Notifications</span></button>
-          <button className="create-button" aria-label="Create post"><Plus /></button>
-          <button className={`nav-tap ${active === 'messages' ? 'active' : ''}`} onClick={() => selectTab('messages')}><MessageCircle /><span>Messages</span></button>
-          <button className={`nav-tap ${active === 'profile' ? 'active' : ''}`} onClick={() => selectTab('profile')}><UserPlus /><span>Profile</span></button>
-        </nav>
+          <AnimatePresence>
+            {worldFeedOpen && (
+              <>
+                <motion.button className="world-feed-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setWorldFeedOpen(false)} aria-label="Close" />
+                <motion.div className="world-feed-menu" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }}>
+                  <motion.button whileTap={{ scale: 0.96 }} onClick={() => setWorldFeedOpen(false)}><Globe2 /> World Feed</motion.button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
+          <section className="yuniko-stories" aria-label="Stories">
+            <div className="stories-track">
+              {stories.map((story) => (
+                <motion.button className="story-item" key={story.name} whileTap={{ scale: 0.9 }} transition={spring} aria-label={story.name}>
+                  <span className={`story-avatar-ring ${story.own ? 'own' : ''}`}>
+                    <span className="story-avatar-inner"><img src={story.image} alt="" /></span>
+                    {story.own && <span className="story-add"><Plus /></span>}
+                  </span>
+                  <span className="story-label">{story.name}</span>
+                  {story.online && <span className="story-online" />}
+                </motion.button>
+              ))}
+            </div>
+          </section>
+
+          <main className="yuniko-feed">
+            <article className="yuniko-feed-item">
+              <div className="post-card">
+                <img className="post-image" onClick={handlePostTap} src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=90" alt="Ocean sunset" />
+                <div className="post-gradient" />
+                <AnimatePresence>
+                  {heartBurst && <motion.div key="heart-burst" className="heart-burst" initial={{ scale: 0.5, opacity: 1 }} animate={{ scale: 1.6, opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.7, ease: 'easeOut' }}><Heart size={100} fill="currentColor" /></motion.div>}
+                </AnimatePresence>
+                <div className="post-actions">
+                  <ActionButton active={liked} onClick={() => setLiked(v => !v)} icon={<Heart fill={liked ? 'currentColor' : 'none'} />} count={liked ? '25.7K' : '25.6K'} />
+                  <ActionButton icon={<MessageCircle />} count="1.2K" />
+                  <ActionButton icon={<Send />} count="3.4K" />
+                  <ActionButton active={saved} onClick={() => setSaved(v => !v)} icon={<Bookmark fill={saved ? 'currentColor' : 'none'} />} count="2.1K" />
+                </div>
+                <div className="post-author">
+                  <div className="author-avatar"><img src={stories[0].image} alt="Aina" /></div>
+                  <div className="author-text"><strong>Aina <i>✓</i></strong><span>Madagascar 🇲🇬</span></div>
+                  <motion.button className={`follow-button ${following ? 'following' : ''}`} whileTap={{ scale: 0.95 }} transition={spring} onClick={() => setFollowing(v => !v)}>{following ? 'Following' : 'Follow'}</motion.button>
+                </div>
+                <div className="post-caption"><strong>Sunset hits different 🌅✨</strong><span>#sunset #goodvibes #life</span></div>
+              </div>
+            </article>
+          </main>
+
+          <nav className="yuniko-bottom-nav" aria-label="Main navigation">
+            <NavButton active={active === 'home'} onClick={() => selectTab('home')}><Home /><span>Home</span></NavButton>
+            <NavButton active={active === 'notifications'} onClick={() => selectTab('notifications')} badge={notifications}><Bell /><span>Notifications</span></NavButton>
+            <motion.button className="create-button" aria-label="Create post" whileTap={{ scale: 0.88 }} whileHover={{ scale: 1.05 }} transition={spring}><Plus /></motion.button>
+            <NavButton active={active === 'messages'} onClick={() => selectTab('messages')}><MessageCircle /><span>Messages</span></NavButton>
+            <NavButton active={active === 'profile'} onClick={() => selectTab('profile')}><User /><span>Profile</span></NavButton>
+          </nav>
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   )
 }
 
-export default App
+function ActionButton({ active, onClick, icon, count }: { active?: boolean; onClick?: () => void; icon: React.ReactNode; count: string }) {
+  return <motion.button className={`action-button ${active ? 'active' : ''}`} whileTap={{ scale: 0.88 }} transition={spring} onClick={onClick}>{icon}<span>{count}</span></motion.button>
+}
+
+function NavButton({ active, onClick, children, badge }: { active: boolean; onClick: () => void; children: React.ReactNode; badge?: number }) {
+  return <motion.button className={`nav-button ${active ? 'active' : ''}`} whileTap={{ scale: 0.88 }} transition={spring} onClick={onClick}>
+    <span className="nav-icon">{children}{badge ? <i>{badge}</i> : null}</span>
+    {Array.isArray(children) ? children[1] : null}
+  </motion.button>
+}
