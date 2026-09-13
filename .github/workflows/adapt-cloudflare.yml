@@ -1,0 +1,114 @@
+name: Adapt Yuniko for standalone Cloudflare build
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  adapt:
+    if: ${{ !contains(github.event.head_commit.message, '[cloudflare-adapted]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Aorayuniko
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Copy Yuniko API client and remove Replit workspace dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p src/lib/api-client-react/generated
+          curl -fsSL https://raw.githubusercontent.com/Aora-group-entreprise/Yuniko/main/lib/api-client-react/src/custom-fetch.ts -o src/lib/api-client-react/custom-fetch.ts
+          curl -fsSL https://raw.githubusercontent.com/Aora-group-entreprise/Yuniko/main/lib/api-client-react/src/index.ts -o src/lib/api-client-react/index.ts
+          curl -fsSL https://raw.githubusercontent.com/Aora-group-entreprise/Yuniko/main/lib/api-client-react/src/generated/api.ts -o src/lib/api-client-react/generated/api.ts
+          curl -fsSL https://raw.githubusercontent.com/Aora-group-entreprise/Yuniko/main/lib/api-client-react/src/generated/api.schemas.ts -o src/lib/api-client-react/generated/api.schemas.ts
+
+          find src -type f \( -name '*.ts' -o -name '*.tsx' \) -print0 | xargs -0 sed -i 's#@workspace/api-client-react#@/lib/api-client-react#g'
+
+          node <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const d = p.devDependencies;
+          delete d['@replit/vite-plugin-cartographer'];
+          delete d['@replit/vite-plugin-dev-banner'];
+          delete d['@replit/vite-plugin-runtime-error-modal'];
+          delete d['@workspace/api-client-react'];
+          Object.assign(d, {
+            '@tailwindcss/vite': '^4.1.14',
+            '@tanstack/react-query': '^5.90.21',
+            '@types/node': '^25.3.3',
+            '@types/react': '^19.2.0',
+            '@types/react-dom': '^19.2.0',
+            '@vitejs/plugin-react': '^5.0.4',
+            'class-variance-authority': '^0.7.1',
+            'clsx': '^2.1.1',
+            'framer-motion': '^12.23.24',
+            'lucide-react': '^0.545.0',
+            'react': '19.1.0',
+            'react-dom': '19.1.0',
+            'tailwind-merge': '^3.3.1',
+            'tailwindcss': '^4.1.14',
+            'vite': '^7.3.2',
+            'zod': '^3.25.76'
+          });
+          fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
+          NODE
+
+          cat > tsconfig.json <<'JSON'
+          {
+            "include": ["src/**/*"],
+            "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+            "compilerOptions": {
+              "incremental": true,
+              "tsBuildInfoFile": ".tsbuildinfo",
+              "noEmit": true,
+              "jsx": "preserve",
+              "lib": ["esnext", "dom", "dom.iterable"],
+              "resolveJsonModule": true,
+              "allowImportingTsExtensions": true,
+              "moduleResolution": "bundler",
+              "types": ["node", "vite/client"],
+              "paths": { "@/*": ["./src/*"] }
+            }
+          }
+          JSON
+
+          cat > vite.config.ts <<'EOF'
+          import { defineConfig } from "vite";
+          import react from "@vitejs/plugin-react";
+          import tailwindcss from "@tailwindcss/vite";
+          import path from "path";
+
+          const rawPort = process.env.PORT ?? "5173";
+          const port = Number(rawPort);
+          if (Number.isNaN(port) || port <= 0) throw new Error(`Invalid PORT value: "${rawPort}"`);
+          const basePath = process.env.BASE_PATH ?? "/";
+
+          export default defineConfig({
+            base: basePath,
+            plugins: [react(), tailwindcss()],
+            resolve: {
+              alias: {
+                "@": path.resolve(import.meta.dirname, "src"),
+                "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+              },
+              dedupe: ["react", "react-dom"],
+            },
+            root: path.resolve(import.meta.dirname),
+            build: { outDir: path.resolve(import.meta.dirname, "dist"), emptyOutDir: true },
+            server: { port, strictPort: true, host: "0.0.0.0", allowedHosts: true },
+            preview: { port, host: "0.0.0.0", allowedHosts: true },
+          });
+          EOF
+
+          rm -f .github/workflows/adapt-cloudflare.yml
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json tsconfig.json vite.config.ts src .github/workflows/adapt-cloudflare.yml
+          git commit -m 'Make Yuniko standalone for Cloudflare build [cloudflare-adapted]' || exit 0
+          git push origin main
