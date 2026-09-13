@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import logoSrc from "@assets/file_000000003524724399ff06d3685a22e6_1780640550687.png";
+
+// Keep the exact Yuniko splash asset while making the standalone Cloudflare
+// build independent from Replit's local `attached_assets` mount.
+const logoSrc = "https://raw.githubusercontent.com/Aora-group-entreprise/Yuniko/main/attached_assets/file_000000003524724399ff06d3685a22e6_1780640550687.png";
 
 interface SplashScreenProps {
   onDone: () => void;
@@ -92,7 +95,6 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
               transition={{ delay: 0.55, duration: 0.4 }}
               className="mt-8 flex flex-col items-center gap-1"
             >
-              {/* Transparent SVG: no background rectangle behind the Aora mark. */}
               <AoraMark />
               <span className="text-white/90 text-sm font-semibold tracking-wide">
                 Aora Group
