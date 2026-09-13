@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './yuniko.css'
 import './yuniko-responsive.css'
+import './motion-fix.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
