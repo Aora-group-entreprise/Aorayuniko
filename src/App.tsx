@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Bell, Bookmark, ChevronDown, Globe2, Heart, Home, MessageCircle, Plus, Search, Send, UserPlus } from 'lucide-react'
 
 const stories = [
@@ -17,30 +17,43 @@ function App() {
   const [following, setFollowing] = useState(false)
   const [active, setActive] = useState('home')
   const [notifications, setNotifications] = useState(3)
+  const [heartBurst, setHeartBurst] = useState(false)
+  const lastTap = useRef(0)
 
   const selectTab = (tab: string) => {
     setActive(tab)
     if (tab === 'notifications') setNotifications(0)
   }
 
+  const handlePostTap = () => {
+    const now = Date.now()
+    if (now - lastTap.current < 320) {
+      setLiked(true)
+      setHeartBurst(false)
+      requestAnimationFrame(() => setHeartBurst(true))
+      window.setTimeout(() => setHeartBurst(false), 720)
+    }
+    lastTap.current = now
+  }
+
   return (
     <div className="yuniko-root">
       <div className="yuniko-app-shell">
         <header className="yuniko-header">
-          <button className="yuniko-logo" onClick={() => selectTab('home')} aria-label="Yuniko home">Yuniko</button>
-          <button className="world-feed" aria-label="World Feed">
+          <button className="yuniko-logo tap-scale" onClick={() => selectTab('home')} aria-label="Yuniko home">Yuniko</button>
+          <button className="world-feed tap-scale" aria-label="World Feed">
             <Globe2 /> <span>World Feed</span> <ChevronDown />
           </button>
           <div className="header-actions">
-            <button aria-label="Search"><Search /></button>
-            <button aria-label="Add friends"><UserPlus /></button>
+            <button className="tap-scale" aria-label="Search"><Search /></button>
+            <button className="tap-scale" aria-label="Add friends"><UserPlus /></button>
           </div>
         </header>
 
         <section className="yuniko-stories" aria-label="Stories">
           <div className="stories-track">
             {stories.map((story) => (
-              <button className="story-item" key={story.name} aria-label={story.name}>
+              <button className="story-item tap-scale-story" key={story.name} aria-label={story.name}>
                 <span className={`story-avatar-ring ${story.own ? 'own' : ''}`}>
                   <span className="story-avatar-inner"><img src={story.image} alt="" /></span>
                   {story.own && <span className="story-add"><Plus /></span>}
@@ -55,13 +68,14 @@ function App() {
         <main className="yuniko-feed">
           <article className="yuniko-feed-item">
             <div className="post-card">
-              <img className="post-image" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=90" alt="Ocean sunset" />
+              <img className="post-image" onClick={handlePostTap} src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=90" alt="Ocean sunset" />
               <div className="post-gradient" />
+              {heartBurst && <div className="heart-burst" aria-hidden="true"><Heart fill="currentColor" /></div>}
               <div className="post-actions">
-                <button className={liked ? 'active' : ''} onClick={() => setLiked(v => !v)} aria-label="Like"><Heart fill={liked ? 'currentColor' : 'none'} /><span>{liked ? '25.7K' : '25.6K'}</span></button>
-                <button aria-label="Comments"><MessageCircle /><span>1.2K</span></button>
-                <button aria-label="Share"><Send /><span>3.4K</span></button>
-                <button className={saved ? 'active' : ''} onClick={() => setSaved(v => !v)} aria-label="Save"><Bookmark fill={saved ? 'currentColor' : 'none'} /><span>2.1K</span></button>
+                <button className={`action-tap ${liked ? 'active' : ''}`} onClick={() => setLiked(v => !v)} aria-label="Like"><Heart fill={liked ? 'currentColor' : 'none'} /><span>{liked ? '25.7K' : '25.6K'}</span></button>
+                <button className="action-tap" aria-label="Comments"><MessageCircle /><span>1.2K</span></button>
+                <button className="action-tap" aria-label="Share"><Send /><span>3.4K</span></button>
+                <button className={`action-tap ${saved ? 'active' : ''}`} onClick={() => setSaved(v => !v)} aria-label="Save"><Bookmark fill={saved ? 'currentColor' : 'none'} /><span>2.1K</span></button>
               </div>
               <div className="post-author">
                 <div className="author-avatar"><img src={stories[0].image} alt="Aina" /></div>
@@ -74,11 +88,11 @@ function App() {
         </main>
 
         <nav className="yuniko-bottom-nav" aria-label="Main navigation">
-          <button className={active === 'home' ? 'active' : ''} onClick={() => selectTab('home')}><Home /><span>Home</span></button>
-          <button className={active === 'notifications' ? 'active' : ''} onClick={() => selectTab('notifications')}><span className="nav-icon"><Bell />{notifications > 0 && <i>{notifications}</i>}</span><span>Notifications</span></button>
+          <button className={`nav-tap ${active === 'home' ? 'active' : ''}`} onClick={() => selectTab('home')}><Home /><span>Home</span></button>
+          <button className={`nav-tap ${active === 'notifications' ? 'active' : ''}`} onClick={() => selectTab('notifications')}><span className="nav-icon"><Bell />{notifications > 0 && <i>{notifications}</i>}</span><span>Notifications</span></button>
           <button className="create-button" aria-label="Create post"><Plus /></button>
-          <button className={active === 'messages' ? 'active' : ''} onClick={() => selectTab('messages')}><MessageCircle /><span>Messages</span></button>
-          <button className={active === 'profile' ? 'active' : ''} onClick={() => selectTab('profile')}><UserPlus /><span>Profile</span></button>
+          <button className={`nav-tap ${active === 'messages' ? 'active' : ''}`} onClick={() => selectTab('messages')}><MessageCircle /><span>Messages</span></button>
+          <button className={`nav-tap ${active === 'profile' ? 'active' : ''}`} onClick={() => selectTab('profile')}><UserPlus /><span>Profile</span></button>
         </nav>
       </div>
     </div>
