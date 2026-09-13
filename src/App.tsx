@@ -77,8 +77,8 @@ function App() {
         <article className="post-card">
           <div className="post-media">
             <img
-              src="https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=1200&q=85"
-              alt="Sunset by the ocean"
+              src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=90"
+              alt="Ocean sunset"
             />
             <div className="media-overlay" />
 
@@ -87,14 +87,8 @@ function App() {
                 <Heart size={28} fill={liked ? 'currentColor' : 'none'} />
                 <span>{liked ? '25.7K' : '25.6K'}</span>
               </button>
-              <button aria-label="Comments">
-                <MessageCircle size={27} />
-                <span>1.2K</span>
-              </button>
-              <button aria-label="Share">
-                <Send size={27} />
-                <span>3.4K</span>
-              </button>
+              <button aria-label="Comments"><MessageCircle size={27} /><span>1.2K</span></button>
+              <button aria-label="Share"><Send size={27} /><span>3.4K</span></button>
               <button className={saved ? 'active' : ''} onClick={() => setSaved(!saved)} aria-label="Save">
                 <Bookmark size={27} fill={saved ? 'currentColor' : 'none'} />
                 <span>2.1K</span>
@@ -125,25 +119,11 @@ function App() {
       </main>
 
       <nav className="bottom-nav" aria-label="Main navigation">
-        <button className={active === 'home' ? 'selected' : ''} onClick={() => selectTab('home')}>
-          <Home size={23} />
-          <span>Home</span>
-        </button>
-        <button className={active === 'notifications' ? 'selected' : ''} onClick={() => selectTab('notifications')}>
-          <span className="nav-icon-wrap"><Bell size={23} />{notifications > 0 && <i>{notifications}</i>}</span>
-          <span>Notifications</span>
-        </button>
-        <button className="create" aria-label="Create post">
-          <Plus size={34} />
-        </button>
-        <button className={active === 'messages' ? 'selected' : ''} onClick={() => selectTab('messages')}>
-          <MessageCircle size={23} />
-          <span>Messages</span>
-        </button>
-        <button className={active === 'profile' ? 'selected' : ''} onClick={() => selectTab('profile')}>
-          <UserPlus size={23} />
-          <span>Profile</span>
-        </button>
+        <button className={active === 'home' ? 'selected' : ''} onClick={() => selectTab('home')}><Home size={23} /><span>Home</span></button>
+        <button className={active === 'notifications' ? 'selected' : ''} onClick={() => selectTab('notifications')}><span className="nav-icon-wrap"><Bell size={23} />{notifications > 0 && <i>{notifications}</i>}</span><span>Notifications</span></button>
+        <button className="create" aria-label="Create post"><Plus size={34} /></button>
+        <button className={active === 'messages' ? 'selected' : ''} onClick={() => selectTab('messages')}><MessageCircle size={23} /><span>Messages</span></button>
+        <button className={active === 'profile' ? 'selected' : ''} onClick={() => selectTab('profile')}><UserPlus size={23} /><span>Profile</span></button>
       </nav>
     </div>
   )
