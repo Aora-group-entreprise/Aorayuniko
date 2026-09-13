@@ -1,0 +1,30 @@
+name: Copy Yuniko assets for standalone build
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  copy-assets:
+    if: ${{ !contains(github.event.head_commit.message, '[assets-copied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Copy required Yuniko asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p attached_assets
+          curl -fsSL https://raw.githubusercontent.com/Aora-group-entreprise/Yuniko/main/attached_assets/file_000000003524724399ff06d3685a22e6_1780640550687.png -o attached_assets/file_000000003524724399ff06d3685a22e6_1780640550687.png
+          rm -f .github/workflows/copy-yuniko-assets.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add attached_assets/file_000000003524724399ff06d3685a22e6_1780640550687.png .github/workflows/copy-yuniko-assets.yml
+          git commit -m 'Copy required Yuniko asset [assets-copied]'
+          git push origin main
